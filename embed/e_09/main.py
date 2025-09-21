@@ -1,62 +1,54 @@
-import utime
+import time
+import dht
 import machine
+import network
+import urequests
 
-punainen_valo = False
-last_press_time = 0
+ssid = 'Wokwi-GUEST'
+password = ''
 
-led_red = machine.Pin(15, machine.Pin.OUT)
-led_yellow = machine.Pin(14, machine.Pin.OUT)
-led_green = machine.Pin(13, machine.Pin.OUT)
-buzzer = machine.Pin(12, machine.Pin.OUT)
+api_key = 'B5Z7032Q1KD9MNK6'
+base_url = 'https://api.thingspeak.com/update'
 
-def interrupt_handler(pin):
-    global punainen_valo, last_press_time
-    now = utime.ticks_ms()
-    if utime.ticks_diff(now, last_press_time) > 300:
-        punainen_valo = True
-        last_press_time = now
+wlan = network.WLAN(network.STA_IF)
+wlan.active(True)
+wlan.connect(ssid, password)
+print("Connecting to Wi-Fi...", end="")
+while not wlan.isconnected():
+    print(".", end="")
+    time.sleep(0.5)
 
-button = machine.Pin(16, machine.Pin.IN, machine.Pin.PULL_DOWN)
-button.irq(trigger=machine.Pin.IRQ_RISING, handler=interrupt_handler)
+print("\nConnected")
+print("IP address:", wlan.ifconfig()[0])
 
-def stop_traffic():
-    led_red.value(1)
-    for i in range(10):
-        buzzer.value(1)
-        utime.sleep(0.2)
-        buzzer.value(0)
-        utime.sleep(0.2)
-    led_red.value(0)
+sensor = dht.DHT22(machine.Pin(22))
+
+
+def send_to_tspeak(temp, hum):
+    if temp is None:
+        print("No temperature data to send.")
+        return
+    try:
+        response = urequests.post(
+            base_url,
+            data='api_key={}&field1={}&field2={}'.format(api_key, temp, hum),
+            headers={'Content-Type': 'application/x-www-form-urlencoded'}
+        )
+        print("ThingSpeak response:", response.text)
+        response.close()
+    except Exception as e:
+        print("Failed to send data:", e)
+
 
 while True:
-    if punainen_valo:
-        stop_traffic()
-        punainen_valo = False
+    try:
+        sensor.measure()
+        temperature = sensor.temperature()
+        humidity = sensor.humidity()
+        print("Temperature:", temperature, "C")
+        print("Humidity:", humidity, "%")
+        send_to_tspeak(temperature, humidity)
+    except Exception as e:
+        print("Error reading sensor or sending data:", e)
 
-    led_red.value(1)
-    for _ in range(20):
-        utime.sleep(0.1)
-        if punainen_valo:
-            break
-    led_red.value(0)
-
-    led_yellow.value(1)
-    for _ in range(20):
-        utime.sleep(0.1)
-        if punainen_valo:
-            break
-    led_yellow.value(0)
-
-    led_green.value(1)
-    for _ in range(50):
-        utime.sleep(0.1)
-        if punainen_valo:
-            break
-    led_green.value(0)
-
-    led_yellow.value(1)
-    for _ in range(20):
-        utime.sleep(0.1)
-        if punainen_valo:
-            break
-    led_yellow.value(0)
+    time.sleep(15)
