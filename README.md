@@ -9,12 +9,12 @@ Jokainen tehtävä omassa kansiossaan.
 
 Backend:
 
-Onnistuin poistamaan nämä, enkä kerennyt tehdä enää uudestaan ennen deadlinea. Käytin epähuomiossa komentoa:
+Onnistuin poistamaan nämä jo kerran. Käytin epähuomiossa komentoa:
 git reset --hard HEAD~1
 
 Databases:
 
-Onnistuin poistamaan nämä, enkä kerennyt tehdä enää uudestaan ennen deadlinea. Käytin epähuomiossa komentoa:
+Onnistuin poistamaan nämä jo kerran. Käytin epähuomiossa komentoa:
 git reset --hard HEAD~1
 
 Frontend:
@@ -28,6 +28,7 @@ Täysi pipeline, jossa seuraavat:
 
 main.py / micropython koodi rautaan liittyen, lähettää tiedot thingspeakiin
 
-server.js / serverilogiikka ja ThingSpeakin databaseen sekä localhostiin syöttäminen
+server.js / serverilogiikka ja thingspeak datan hakeminen expressillä databaseen
+--> lähettää tietoa myös webhookkina discordiin, jos raja-arvot ylittyvät
 
-line_chart.html sekä chart.js / hakee localhostista tiedot ja esittää ne kuvaajana selaimessa
+line_chart.html sekä chart.js / hakee serveriltä datan ja luo tämän avulla kaavion
