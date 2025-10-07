@@ -25,7 +25,7 @@ function drawChart() {
         curveType: "function",
         legend: { position: "bottom" },
         hAxis: { title: "Date" },
-        vAxis: { title: "Values" },
+        vAxis: { title: "Values", viewWindow: { min: 0, max: 100 } },
       };
 
       const chart = new google.visualization.LineChart(

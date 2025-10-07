@@ -14,6 +14,8 @@ app.use(express.static(path.join(__dirname, "public")));
 const API_KEY = "B5Z7032Q1KD9MNK6";
 const BASE_URL = "https://api.thingspeak.com/channels/3083804/feeds.json?";
 const PORT = 3000;
+const WEBHOOK =
+  "https://discord.com/api/webhooks/1422173095879507969/vQQ_ksXiJe_mSFKglShgpuzaATHC7zKMErb2a8P5h2xIr5-OQ9oLkvYLgMrcHVGzDGtH";
 
 const db = new sqlite3.Database("./ElmonDatabase.db", (err) => {
   if (err) return console.error(err.message);
@@ -44,6 +46,17 @@ const fetchDataAndStore = async () => {
       console.log(`A row has been inserted with rowid ${this.lastID}`);
     }
   );
+  if (temperature > 30 || humidity > 70) {
+    const msg = {
+      content: `🚨 ALERT!\n🌡️ Temp: ${temperature}°C\n💧 Humidity: ${humidity}%`,
+    };
+
+    await fetch(WEBHOOK, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(msg),
+    });
+  }
 };
 
 setInterval(() => {
@@ -55,6 +68,22 @@ app.get("/data", (req, res) => {
     if (err) return res.status(500).json({ error: err.message });
     res.json({ data: rows });
   });
+});
+
+app.post("/discord", async (req, res) => {
+  const { temp, hum } = req.body;
+
+  const message = {
+    content: `🌡 Temp: ${temp}°C\n💧 Humidity: ${hum}%`,
+  };
+
+  await fetch(discord_webhook_url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(message),
+  });
+
+  res.send("Sent to Discord");
 });
 
 app.listen(PORT, () => {

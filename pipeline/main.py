@@ -8,7 +8,7 @@ ssid = 'Wokwi-GUEST'
 password = ''
 
 api_key = 'B5Z7032Q1KD9MNK6'
-base_url = 'https://api.thingspeak.com/update'
+base_url = 'http://api.thingspeak.com/update'
 
 wlan = network.WLAN(network.STA_IF)
 wlan.active(True)
@@ -23,6 +23,7 @@ print("IP address:", wlan.ifconfig()[0])
 
 sensor = dht.DHT22(machine.Pin(22))
 
+
 def send_to_tspeak(temp, hum):
     if temp is None:
         return
@@ -36,13 +37,16 @@ def send_to_tspeak(temp, hum):
     except Exception:
         pass
 
+
 while True:
     try:
         sensor.measure()
         temperature = sensor.temperature()
         humidity = sensor.humidity()
+        print("Temperature:", temperature, "C")
+        print("Humidity:", humidity, "%")
         send_to_tspeak(temperature, humidity)
-    except Exception:
-        pass
+    except Exception as e:
+        print("Loop error:", e)
 
     time.sleep(15)
